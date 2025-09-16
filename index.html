@@ -129,7 +129,7 @@
   <div class="card">
     <div class="glow" aria-hidden="true"></div>
     <h1>Quem é seu amor?</h1>
-    <p class="lead">Digite a resposta exata. Dica: são 5 letras 😏</p>
+    <p class="lead">digita ai resposta exata. sem roubar 😏</p>
 
     <div id="err" class="banner" role="alert" aria-live="polite">Resposta errada!</div>
     <div id="ok" class="ok" role="status" aria-live="polite">Acertou! 💘</div>
@@ -156,14 +156,18 @@
       const btn = $("#btn");
 
       // mostrar "nome" deduzido da URL no rodapé (opcional)
-      try {
+      /*try {
         const host = location.hostname;
         const maybe = host.split(".")[0].replace(/[-_]/g, " ");
         if (maybe && maybe.length > 1) {
           $("#footer-note").textContent = `para ${maybe} ✨`;
           document.title = `${maybe} 💖`;
         }
-      } catch(_) {}
+      } catch(_) {}*/
+
+      // 🔧 PERSONALIZAÇÃO MANUAL
+      $("#footer-note").textContent = "para Whika ✨";
+      document.title = "Whika 💖";
 
       function limparEstados() {
         ok.classList.remove("show");
