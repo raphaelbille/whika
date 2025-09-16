@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Te amo, <span id='nome-url'></span> 💖</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #f472b6;
+      --accent-2: #22d3ee;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --ring: rgba(244,114,182,.35);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(34,211,238,0.15), transparent 50%),
+                  radial-gradient(1200px 800px at 110% 110%, rgba(244,114,182,0.15), transparent 40%),
+                  linear-gradient(180deg, #0b1022 0%, #0f172a 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(640px, 92vw);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 20px 70px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(6px);
+      position: relative;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: clamp(26px, 3.2vw, 36px);
+      margin: 0 0 8px;
+      letter-spacing: .2px;
+    }
+    p.lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .stack { display: grid; gap: 12px; }
+    label { font-size: 14px; color: var(--muted); }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: #0b1220;
+      color: var(--text);
+      outline: none;
+      font-size: 16px;
+      transition: box-shadow .2s ease, border-color .2s ease, background .2s ease;
+    }
+    input[type="text"]::placeholder { color: #6b7280; }
+    input[type="text"]:focus {
+      border-color: rgba(244,114,182,.45);
+      box-shadow: 0 0 0 6px var(--ring);
+      background: #0a1020;
+    }
+    button {
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #0b1020;
+      font-weight: 700;
+      letter-spacing: .3px;
+      cursor: pointer;
+      transition: transform .06s ease, filter .2s ease;
+      white-space: nowrap;
+    }
+    button:hover { filter: brightness(1.08); }
+    button:active { transform: translateY(1px); }
+    .banner {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(239,68,68,.12), rgba(239,68,68,.1));
+      border: 1px solid rgba(239,68,68,.45);
+      color: #fecaca;
+      font-weight: 600;
+    }
+    .banner.show { display: block; }
+    .ok {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(34,197,94,.12), rgba(34,197,94,.1));
+      border: 1px solid rgba(34,197,94,.45);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+    .ok.show { display: block; }
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+    .glow {
+      position: absolute;
+      inset: -1px;
+      pointer-events: none;
+      background: radial-gradient(600px 220px at 50% -10%, rgba(244,114,182,.18), transparent 60%);
+      opacity: .8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="glow" aria-hidden="true"></div>
+    <h1>Quem é seu amor?</h1>
+    <p class="lead">Digite a resposta exata. Dica: são 5 letras 😏</p>
+
+    <div id="err" class="banner" role="alert" aria-live="polite">Resposta errada!</div>
+    <div id="ok" class="ok" role="status" aria-live="polite">Acertou! 💘</div>
+
+    <form id="form" class="stack" autocomplete="off">
+      <label for="answer">Responda aqui</label>
+      <div class="row">
+        <input id="answer" type="text" placeholder="Escreva a resposta..." inputmode="latin" autofocus maxlength="20">
+        <button id="btn" type="submit" aria-label="Conferir resposta">Conferir</button>
+      </div>
+    </form>
+
+    <footer id="footer-note">feito com 💖</footer>
+  </div>
+
+  <script>
+    (function() {
+      const CORRETA = "phelo"; // resposta única e exata
+      const $ = (q) => document.querySelector(q);
+      const form = $("#form");
+      const ans = $("#answer");
+      const ok = $("#ok");
+      const err = $("#err");
+      const btn = $("#btn");
+
+      // mostrar "nome" deduzido da URL no rodapé (opcional)
+      try {
+        const host = location.hostname;
+        const maybe = host.split(".")[0].replace(/[-_]/g, " ");
+        if (maybe && maybe.length > 1) {
+          $("#footer-note").textContent = `para ${maybe} ✨`;
+          document.title = `${maybe} 💖`;
+        }
+      } catch(_) {}
+
+      function limparEstados() {
+        ok.classList.remove("show");
+        err.classList.remove("show");
+      }
+
+      function sucesso() {
+        ok.textContent = "Acertou! 💘";
+        ok.classList.add("show");
+        err.classList.remove("show");
+        ans.setAttribute("readonly", "true");
+        btn.disabled = true;
+        confete(120, 12); // celebra!
+      }
+
+      function erro() {
+        err.textContent = "Resposta errada!";
+        err.classList.add("show");
+        ok.classList.remove("show");
+        ans.focus();
+        ans.select();
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const v = (ans.value || "").trim();
+        if (v.toLowerCase() === CORRETA) sucesso();
+        else erro();
+      });
+
+      ans.addEventListener("input", limparEstados);
+      ans.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          btn.click();
+        }
+      });
+
+      // confete simples (sem libs)
+      function confete(qtd=90, dur=10) {
+        const colors = ["#f472b6","#22d3ee","#34d399","#f59e0b","#60a5fa"];
+        const end = Date.now() + dur * 100;
+        (function frame() {
+          // cria 8 partículas por frame
+          for (let i = 0; i < 8; i++) {
+            const d = document.createElement("div");
+            d.style.position = "fixed";
+            d.style.top = "-10px";
+            d.style.left = Math.random()*100 + "vw";
+            d.style.width = "8px";
+            d.style.height = "12px";
+            d.style.background = colors[Math.floor(Math.random()*colors.length)];
+            d.style.opacity = "0.9";
+            d.style.transform = "rotate(" + (Math.random()*360) + "deg)";
+            d.style.borderRadius = "2px";
+            d.style.zIndex = "9999";
+            document.body.appendChild(d);
+            const fall = 80 + Math.random()*40;
+            const drift = (Math.random()*2 - 1) * 40;
+            const start = performance.now();
+            (function anim(t0) {
+              const t = (performance.now() - t0) / 1000; // s
+              const y = t * fall;
+              const x = Math.sin(t*4) * 8 + drift * t/3;
+              d.style.transform = "translate(" + x + "px," + y + "px) rotate(" + (t*180) + "deg)";
+              if (y < window.innerHeight + 10) requestAnimationFrame(() => anim(t0));
+              else d.remove();
+            })(performance.now());
+          }
+          if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+      }
+    })();
+  </script>
+</body>
+</html>
